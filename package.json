@@ -1,0 +1,26 @@
+{
+  "name": "obligatorio-taller2---politi-ruete-alvarez",
+  "version": "1.0.0",
+  "description": "Aplicación Node.js para el obligatorio de Taller 2.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test",
+    "deploy:local": "npx hardhat run scripts/deploy-local.js --network localhost"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "hardhat": "^2.27.0",
+    "nodemon": "^3.1.11"
+  },
+  "type": "module"
+}
+
