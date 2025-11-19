@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DAO Governance - Taller 2</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="bg-dark text-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="#">DAO Governance</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#" data-view="dashboard">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-view="proposals">Propuestas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-view="account">Mi cuenta</a>
+            </li>
+          </ul>
+          <div class="d-flex gap-2 align-items-center">
+            <span id="dao-status-pill" class="badge rounded-pill text-bg-secondary small-text">DAO</span>
+            <button id="connect-metamask" class="btn btn-outline-light btn-sm">
+              Conectar Metamask
+            </button>
+            <button id="connect-altwallet" class="btn btn-outline-info btn-sm" disabled>
+              Otra wallet (próximamente)
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-4">
+      <!-- Alertas -->
+      <div id="alerts-container" class="mb-3"></div>
+
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view-section">
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <div class="card bg-card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">Estado de la DAO</h5>
+                <p class="card-text text-muted small">
+                  Resumen general de configuración y pausa/pánico.
+                </p>
+                <ul class="list-unstyled mb-0 small" id="dao-summary">
+                  <li>Cargando parámetros...</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card bg-card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">Token de Gobernanza</h5>
+                <p class="card-text text-muted small">
+                  Resumen del token ERC‑20 usado para votar.
+                </p>
+                <ul class="list-unstyled mb-0 small" id="token-summary">
+                  <li>Precio: <span class="text-accent" id="token-price">-</span></li>
+                  <li>Tokens por poder de voto: <span id="tokens-per-vote">-</span></li>
+                  <li>Stake mínimo para votar: <span id="stake-min-vote">-</span></li>
+                  <li>Stake mínimo para proponer: <span id="stake-min-propose">-</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card bg-card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">Ventanas de gobernanza</h5>
+                <p class="card-text text-muted small">
+                  Tiempos clave de staking y propuestas.
+                </p>
+                <ul class="list-unstyled mb-0 small">
+                  <li>Lock mínimo staking: <span id="lock-minutes">-</span> min</li>
+                  <li>Duración de propuestas: <span id="prop-hours">-</span> h</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Propuestas recientes</span>
+            <span class="badge rounded-pill text-bg-dark small" id="proposals-count-pill">0 propuestas</span>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Proponente</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Fin</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-proposals-body">
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-3">
+                      Cargando propuestas...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Proposals -->
+      <section id="view-proposals" class="view-section d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Propuestas</h4>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-light active" data-filter="all">
+              Todas
+            </button>
+            <button type="button" class="btn btn-outline-light" data-filter="active">
+              Activas
+            </button>
+            <button type="button" class="btn btn-outline-light" data-filter="accepted">
+              Aceptadas
+            </button>
+            <button type="button" class="btn btn-outline-light" data-filter="rejected">
+              Rechazadas
+            </button>
+          </div>
+        </div>
+
+        <div id="proposals-list" class="row g-3">
+          <div class="col-12 text-center text-muted">
+            Cargando propuestas...
+          </div>
+        </div>
+
+        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="proposal-detail">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="proposal-detail-title">Detalle de propuesta</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <div id="proposal-detail-content" class="small">
+              Cargando...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Account -->
+      <section id="view-account" class="view-section d-none">
+        <h4 class="mb-3">Mi cuenta</h4>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card bg-card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">Wallet conectada</h5>
+                <p class="card-text small text-muted mb-2">
+                  Usa Metamask para firmar transacciones directamente contra los smart contracts.
+                </p>
+                <p class="small mb-1">
+                  Dirección:
+                  <span id="account-address" class="text-accent">No conectada</span>
+                </p>
+                <p class="small">
+                  Poder de voto:
+                  <span id="account-voting-power" class="text-accent">-</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <div class="card bg-card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="card-title">Balances y staking</h5>
+                <div class="row small">
+                  <div class="col-md-6 mb-3">
+                    <h6 class="text-muted text-uppercase small">Token</h6>
+                    <p class="mb-1">
+                      Balance:
+                      <span id="account-balance" class="fw-semibold">-</span>
+                    </p>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <h6 class="text-muted text-uppercase small">Staking para votar</h6>
+                    <p class="mb-1">
+                      Monto:
+                      <span id="account-stake-vote" class="fw-semibold">-</span>
+                    </p>
+                    <p class="mb-0">
+                      Desde:
+                      <span id="account-stake-vote-since">-</span>
+                    </p>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <h6 class="text-muted text-uppercase small">Staking para proponer</h6>
+                    <p class="mb-1">
+                      Monto:
+                      <span id="account-stake-propose" class="fw-semibold">-</span>
+                    </p>
+                    <p class="mb-0">
+                      Desde:
+                      <span id="account-stake-propose-since">-</span>
+                    </p>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="text-muted text-uppercase small">Ayuda</h6>
+                    <p class="mb-1">
+                      Las acciones de staking, compra de tokens, creación de propuestas y votos se realizan directamente
+                      desde tu wallet en la dApp (no desde el backend).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="app.js"></script>
+  </body>
+  </html>
+

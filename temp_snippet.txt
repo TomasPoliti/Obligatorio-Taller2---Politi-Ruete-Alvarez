@@ -1,0 +1,60 @@
+447 	     it("no se puede votar si stake para votar es insuficiente o si votingPower es 0", async function () {
+448 	       const overrides = {
+449 	         tokensPerVotePower: ethers.parseEther("1000"), // hace que votingPower sea 0 para stake chico
+450 	       };
+451 	       const {
+452 	         dao,
+453 	         token,
+454 	         multisigOwner,
+455 	         panicMultisig,
+456 	         user,
+457 	         params,
+458 	       } = await deployFixture(overrides);
+459 	 
+460 	       await dao.connect(multisigOwner).setPanicWallet(panicMultisig.address);
+461 	 
+462 	       // Staking insuficiente para votar
+463 	       await token.mint(user.address, params.minStakeForProposing);
+464 	       await token
+465 	         .connect(user)
+466 	         .approve(await dao.getAddress(), params.minStakeForProposing);
+467 	 
+468 	       await dao.connect(user).stakeForProposing(params.minStakeForProposing);
+469 	 
+470 	       await expect(
+471 	         dao.connect(user).createProposal("t", "d")
+472 	       ).to.be.revertedWithCustomError(dao, "InsufficientStake");
+473 	 
+474 	       // Ahora sí stakemos para votar y proponer, pero con votingPower 0
+475 	       const extra = overrides.tokensPerVotePower - params.minStakeForProposing;
+476 	       await token.mint(user.address, extra + params.minStakeForVoting);
+477 	       await token
+478 	         .connect(user)
+479 	         .approve(await dao.getAddress(), extra + params.minStakeForVoting);
+480 	 
+481 	       await dao.connect(user).stakeForVoting(params.minStakeForVoting);
+482 	       await dao.connect(user).stakeForProposing(extra); // completa los tokens para proponer
+483 	 
+484 	       const tx = await dao
+485 	         .connect(user)
+486 	         .createProposal("Titulo", "Descripcion");
+487 	       const receipt = await tx.wait();
+488 	       const event = receipt.logs
+489 	         .map((l) => dao.interface.parseLog(l))
+490 	         .find((e) => e && e.name === "ProposalCreated");
+491 	       const proposalId = event.args.id;
+492 	 
+493 	       await expect(
+494 	         dao.connect(user).vote(proposalId, true)
+495 	       ).to.be.revertedWithCustomError(dao, "InsufficientStake");
+496 	     });
+497 	 
+498 	     it("votación suma votos a favor/en contra y evita doble voto", async function () {
+499 	       const {
+500 	         dao,
+501 	         token,
+502 	         multisigOwner,
+503 	         panicMultisig,
+504 	         user,
+505 	         other,
+506 	         params,
