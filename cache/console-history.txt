@@ -1,23 +1,0 @@
-    3600n,                      // proposalDuration (seg)ethers.parseEther("10")     // tokensPerVotePower)    60n,                        // minStakeLockTime (seg)    ethers.parseEther("100"),   // minStakeForProposing    ethers.parseEther("100"),   // minStakeForVoting    ethers.parseEther("0.001"), // tokenPriceWei    await token.getAddress(),    owner.address,const dao = await GovernanceDAO.deploy(
-  )    ethers.parseEther("10")     // tokensPerVotePower    3600n,                      // proposalDuration (seg)    60n,                        // minStakeLockTime (seg)    ethers.parseEther("100"),   // minStakeForProposing    ethers.parseEther("100"),   // minStakeForVoting    ethers.parseEther("0.001"), // tokenPriceWei    await token.getAddress(),    owner.address,const dao = await GovernanceDAO.deploy(
-const GovernanceDAO = await ethers.getContractFact
- const [owner, panicMultisig] = await ethers.getSigners()
- const [owner, panicMultisig] = await ethers.getSi
-  console.log("TOKEN_ADDRESS =", await token.getAddress());  await dao.setPanicWallet(panicMul
-  await dao.waitForDeployment();
-  await token.waitForDeployment();
-const [owner, panicMultisig] = await ethers.getSigners();
-const [owner, panicMultisig] = await ethers.getSigFactory("DaoToken");  const token = await DaoToken.deploy("DAO Token", "DTK", owner.address);  await token.waitForDeployment();  const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");  const dao = await GovernanceDAO.deploy(    owner.address,    await token.getAddress(),    ethers.parseEther("0.001"), // tokenPriceWei    ethers.pararseEther("100"),   // minStakeForProposing    60n,                        // minStakeLockTime (seg)    3600n,                      // proposalDuration (seg)    ethers.parseEther("10")     // tokensPerVotePower  );  await dao.waitForDeployment();  await dao.setPanicWallet(panicMultisig.address);  // para que la DAO pueda operar  console.log("TOKEN_ADDRESS =", await token.getAddress());  console.l
-await token.waitForDeployment();
-const token = await DaoToken.deploy("DAO Token", "DTK", owner.address);
-const DaoToken = await ethers.getContractFactory("DaoToken");
-const [owner, panicMultisig] = await ethers.getSigners();
-console.log("TOKEN_ADDRESS =", await token.getAddress());
-console.log("DAO_ADDRESS   =", await dao.getAddress());
-console.log("TOKEN_ADDRESS =", await token.getAddress());
-await dao.waitForDeployment();
-const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-await token.waitForDeployment();
-const token = await DaoToken.deploy("DAO Token", "DTK", owner.address);
-const DaoToken = await ethers.getContractFactory("DaoToken");
-const [owner, panicMultisig] = await ethers.getSig
