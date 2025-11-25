@@ -1,0 +1,5 @@
+await token.mint(daoAddress, ethers.parseEther("1000000"))
+const daoAddress = "YOUR_DAO_ADDRESS_HERE"
+const token = await ethers.getContractAt("DaoToken", "YOUR_TOKEN_ADDRESS_HERE")
+const daoAddress = "YOUR_DAO_ADDRESS_HERE"
+const token = await ethers.getContractAt("DaoToken", "YOUR_TOKEN_ADDRESS_HERE")
