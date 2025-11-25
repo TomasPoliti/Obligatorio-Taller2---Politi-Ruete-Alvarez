@@ -1,5 +1,33 @@
-await token.mint(daoAddress, ethers.parseEther("1000000"))
-const daoAddress = "YOUR_DAO_ADDRESS_HERE"
-const token = await ethers.getContractAt("DaoToken", "YOUR_TOKEN_ADDRESS_HERE")
-const daoAddress = "YOUR_DAO_ADDRESS_HERE"
-const token = await ethers.getContractAt("DaoToken", "YOUR_TOKEN_ADDRESS_HERE")
+}
+  console.log("DAO balance:", ethers.formatUnits(daoBal, decimals));
+  const daoBal = await token.balanceOf(daoAddress);
+if (ethers.isAddress(daoAddress)) {
+const daoAddress = process.env.NEXT_PUBLIC_GOVERNANCE_DAO_ADDRESS;
+// Optional: check DAO contract balance too
+console.log("Balance:", ethers.formatUnits(bal, decimals));
+console.log("Token:", tokenAddress);
+console.log("Signer:", signer.address);
+const bal = await token.balanceOf(signer.address);
+const decimals = await token.decimals();
+const [signer] = await ethers.getSigners();const token = await ethers.getContractAt("DaoToken", tokenAddress, signer);
+if (!ethers.isAddress(tokenAddress)) throw new Error("Invalid token address: " + tokenAddress);
+const tokenAddress = process.env.NEXT_PUBLIC_DAO_TOKEN_ADDRESS;
+// Use the deployed addresses from your environment
+}
+  console.log("DAO balance:", ethers.formatUnits(daoBal, decimals));
+  const daoBal = await token.balanceOf(daoAddress);
+if (ethers.isAddress(daoAddress)) {
+const daoAddress = process.env.NEXT_PUBLIC_GOVERNANCE_DAO_ADDRESS;
+// Optional: check DAO contract balance too
+console.log("Balance:", ethers.formatUnits(bal, decimals));
+console.log("Token:", tokenAddress);
+console.log("Signer:", signer.address);
+const bal = await token.balanceOf(signer.address);
+const decimals = await token.decimals();
+const [signer] = await ethers.getSigners();const token = await ethers.getContractAt("DaoToken", tokenAddress, signer);
+if (!ethers.isAddress(tokenAddress)) throw new Error("Invalid token address: " + tokenAddress);
+const tokenAddress = process.env.NEXT_PUBLIC_DAO_TOKEN_ADDRESS;
+// Use the deployed addresses from your environment
+console.log(ethers.formatEther(await DaoToken.balanceOf(signer.address)));
+const [signer] = await ethers.getSigners();
+const DaoToken = await ethers.getContractAt("DaoToken", "PEGA_AQUI_LA_DIRECCION_DEL_TOKEN");
