@@ -31,6 +31,7 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
   const { signer, isConnected, account } = useWeb3();
   const [loading, setLoading] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "accepted" | "rejected">("all");
   const defaultGas = { gasLimit: 300_000n };
 
   const handleVote = async (proposal: Proposal, support: boolean) => {
@@ -101,28 +102,66 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
       {!isConnected ? (
         <p className="text-zinc-400 text-sm">Connect your wallet to view and vote on proposals</p>
       ) : proposals.length === 0 ? (
-        <p className="text-zinc-400 text-sm">No active proposals at the moment</p>
+        <p className="text-zinc-400 text-sm">No proposals to show</p>
       ) : (
         <div className="space-y-4">
-          {proposals.map((proposal) => {
-            const totalVotes = BigInt(proposal.votesFor) + BigInt(proposal.votesAgainst);
-            const forPercentage = totalVotes > 0n ? Number((BigInt(proposal.votesFor) * 100n) / totalVotes) : 0;
-            const againstPercentage = totalVotes > 0n ? Number((BigInt(proposal.votesAgainst) * 100n) / totalVotes) : 0;
-            const expired = isExpired(proposal);
-            const isActive = proposal.status === 0;
-            const isAccepted = proposal.status === 1;
-            const isRejected = proposal.status === 2;
-            const canExecute =
-              proposal.isTreasuryProposal
-                ? (isActive && expired) || (isAccepted && !proposal.executed)
-                : expired && isActive && !proposal.executed;
-            const alreadyVoted = proposal.hasVoted;
-            const canVote = isActive && !expired && !proposal.executed && !alreadyVoted;
-            const executeLabel = proposal.isTreasuryProposal
-              ? isActive && expired
-                ? 'Finalize'
-                : 'Execute Payout'
-              : 'Finalize';
+          <div className="flex gap-2 flex-wrap mb-2">
+            {[
+              { label: "All", value: "all" },
+              { label: "Active", value: "active" },
+              { label: "Accepted", value: "accepted" },
+              { label: "Rejected", value: "rejected" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() =>
+                  setStatusFilter(option.value as "all" | "active" | "accepted" | "rejected")
+                }
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  statusFilter === option.value
+                    ? "bg-blue-500 text-white"
+                    : "bg-[#0a0a0a] border border-zinc-800 text-zinc-400 hover:text-white"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {(() => {
+            const filtered = proposals.filter((proposal) => {
+              if (statusFilter === "all") return true;
+              if (statusFilter === "active") return proposal.status === 0;
+              if (statusFilter === "accepted") return proposal.status === 1;
+              if (statusFilter === "rejected") return proposal.status === 2;
+              return true;
+            });
+
+            if (filtered.length === 0) {
+              return <p className="text-sm text-zinc-500">No proposals match this filter.</p>;
+            }
+
+            return filtered.map((proposal) => {
+              const totalVotes = BigInt(proposal.votesFor) + BigInt(proposal.votesAgainst);
+              const forPercentage =
+                totalVotes > 0n ? Number((BigInt(proposal.votesFor) * 100n) / totalVotes) : 0;
+              const againstPercentage =
+                totalVotes > 0n ? Number((BigInt(proposal.votesAgainst) * 100n) / totalVotes) : 0;
+              const expired = isExpired(proposal);
+              const isActive = proposal.status === 0;
+              const isAccepted = proposal.status === 1;
+              const isRejected = proposal.status === 2;
+              const canExecute =
+                proposal.isTreasuryProposal
+                  ? (isActive && expired) || (isAccepted && !proposal.executed)
+                  : expired && isActive && !proposal.executed;
+              const alreadyVoted = proposal.hasVoted;
+              const canVote = isActive && !expired && !proposal.executed && !alreadyVoted;
+              const executeLabel = proposal.isTreasuryProposal
+                ? isActive && expired
+                  ? "Finalize"
+                  : "Execute Payout"
+                : "Finalize";
 
             return (
               <div
@@ -239,7 +278,8 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
                 </div>
               </div>
             );
-          })}
+          });
+          })()}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">

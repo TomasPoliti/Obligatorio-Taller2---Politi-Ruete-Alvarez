@@ -275,8 +275,8 @@
       ]
     },
     "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceBase.sol": {
-      "lastModificationDate": 1764155498055,
-      "contentHash": "e66d4731abaf4d394a9b27b90a175f6b",
+      "lastModificationDate": 1764163206593,
+      "contentHash": "580755e54141846675e30191598afad7",
       "sourceName": "src/contracts/GovernanceBase.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -305,7 +305,7 @@
       },
       "imports": [
         "@openzeppelin/contracts/access/Ownable.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+        "./interfaces/IDaoToken.sol"
       ],
       "versionPragmas": [
         "^0.8.20"
@@ -315,8 +315,8 @@
       ]
     },
     "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceAdmin.sol": {
-      "lastModificationDate": 1764117434501,
-      "contentHash": "f174b8c06bfc7879f0f70369b2223929",
+      "lastModificationDate": 1764163215402,
+      "contentHash": "318cc847a2128f1bea29f87e092cf45c",
       "sourceName": "src/contracts/GovernanceAdmin.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -468,6 +468,45 @@
       ],
       "artifacts": [
         "GovernanceDAO"
+      ]
+    },
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\interfaces\\IDaoToken.sol": {
+      "lastModificationDate": 1764163221029,
+      "contentHash": "b2dbf29e910eb469ef3cb4d0380431cf",
+      "sourceName": "src/contracts/interfaces/IDaoToken.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IDaoToken"
       ]
     }
   }

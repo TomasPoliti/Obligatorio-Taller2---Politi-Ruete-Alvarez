@@ -12,6 +12,8 @@ import ProposalsList from '@/src/components/ProposalsList';
 import PanicControls from '@/src/components/PanicControls';
 import DaoParametersForm from '@/src/components/DaoParametersForm';
 import TransferOwnership from '@/src/components/TransferOwnership';
+import MintTokensPanel from '@/src/components/MintTokensPanel';
+import PanicWalletForm from '@/src/components/PanicWalletForm';
 
 interface HealthData {
   network: string;
@@ -37,6 +39,7 @@ interface ParametersData {
 
 interface TreasuryData {
   balanceFormatted: string;
+  tokenBalanceFormatted?: string;
 }
 
 interface Proposal {
@@ -192,26 +195,46 @@ export default function Home() {
         // Fetch all proposals
         const proposalPromises = [];
         for (let i = 0; i < Number(proposalsCount); i++) {
-          proposalPromises.push(contract.getProposal(i));
-        }
-
-        const proposalsData = await Promise.all(proposalPromises);
-
-        let userVotes: boolean[] = [];
-        if (account) {
-          const votePromises = [];
-          for (let i = 0; i < Number(proposalsCount); i++) {
-            votePromises.push(
-              contract.hasVoted(i, account).catch((err: Error) => {
-                console.error('Error fetching vote status:', err);
-                return false;
-              })
-            );
+            proposalPromises.push(contract.getProposal(i).catch((err: Error) => {
+              console.error(`Error fetching proposal ${i}:`, err);
+              return null;
+            }));
           }
-          userVotes = await Promise.all(votePromises);
-        }
 
-        const formattedProposals = proposalsData.map((p: any, index: number) => {
+          const proposalsData = await Promise.all(proposalPromises);
+
+          let userVotes: boolean[] = [];
+          if (account) {
+            const votePromises = [];
+            for (let i = 0; i < Number(proposalsCount); i++) {
+              votePromises.push(
+                contract.hasVoted(i, account).catch((err: Error) => {
+                  console.error('Error fetching vote status:', err);
+                  return false;
+                })
+              );
+            }
+            userVotes = await Promise.all(votePromises);
+          }
+
+          const formattedProposals = proposalsData.map((p: any, index: number) => {
+            if (!p) {
+              return {
+                id: index,
+                title: '',
+                description: '',
+                proposer: '',
+                votesFor: '0',
+                votesAgainst: '0',
+                deadline: 0,
+                status: 0,
+                executed: false,
+                isTreasuryProposal: false,
+                recipient: undefined,
+                amount: undefined,
+                hasVoted: false
+              };
+            }
           const getValue = (primary: any, fallback: any, defaultValue: any = null) => {
             if (primary !== undefined && primary !== null) return primary;
             if (fallback !== undefined && fallback !== null) return fallback;
@@ -338,7 +361,10 @@ export default function Home() {
               <h3 className="text-sm font-medium text-zinc-400">Treasury</h3>
             </div>
             <p className="text-2xl font-bold text-white mb-1">{parseFloat(treasury?.balanceFormatted || '0').toFixed(4)}</p>
-            <p className="text-sm text-zinc-500">ETH</p>
+            <p className="text-sm text-zinc-500 mb-1">ETH</p>
+            <p className="text-sm text-green-400 font-mono">
+              {parseFloat(treasury?.tokenBalanceFormatted || '0').toFixed(2)} DAO tokens
+            </p>
           </div>
 
           <div className="bg-[#111111] border border-[#1e1e1e] rounded-xl p-5 glow-hover transition-all duration-300">
@@ -479,7 +505,7 @@ export default function Home() {
         </div>
 
         {isOwnerConnected && contractAddress && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <PanicControls
               contractAddress={contractAddress}
               isPaused={status?.paused ?? false}
@@ -493,6 +519,17 @@ export default function Home() {
               onSuccess={refreshData}
             />
             <TransferOwnership
+              contractAddress={contractAddress}
+              ownerAddress={status?.owner ?? ''}
+              onSuccess={refreshData}
+            />
+            <PanicWalletForm
+              contractAddress={contractAddress}
+              ownerAddress={status?.owner ?? ''}
+              currentPanicWallet={status?.panicWallet}
+              onSuccess={refreshData}
+            />
+            <MintTokensPanel
               contractAddress={contractAddress}
               ownerAddress={status?.owner ?? ''}
               onSuccess={refreshData}

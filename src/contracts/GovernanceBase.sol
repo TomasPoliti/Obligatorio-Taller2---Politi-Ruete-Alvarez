@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IDaoToken} from "./interfaces/IDaoToken.sol";
 
 /**
  * @dev Base contract que contiene el estado compartido, tipos,
@@ -36,7 +36,7 @@ abstract contract GovernanceBase is Ownable {
         uint256 since;
     }
 
-    IERC20 public immutable token;
+    IDaoToken public immutable token;
 
     // Direccion multisig que actǧa como "dueño" de la DAO (owner de Ownable)
     // se configura en el constructor de Ownable.
@@ -119,7 +119,7 @@ abstract contract GovernanceBase is Ownable {
     }
 
     modifier onlyPanicWallet() {
-        if (msg.sender != panicWallet && msg.sender != owner()) {
+        if (msg.sender != panicWallet) {
             revert NotPanicWallet();
         }
         _;
@@ -138,7 +138,7 @@ abstract contract GovernanceBase is Ownable {
         if (tokenAddress == address(0)) {
             revert InvalidParameter();
         }
-        token = IERC20(tokenAddress);
+        token = IDaoToken(tokenAddress);
 
         // Set the panic wallet to the initial owner so the DAO works right after deployment.
         panicWallet = initialOwner;

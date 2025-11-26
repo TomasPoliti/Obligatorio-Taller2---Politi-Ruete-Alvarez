@@ -612,7 +612,7 @@
       "name": "token",
       "outputs": [
         {
-          "internalType": "contract IERC20",
+          "internalType": "contract IDaoToken",
           "name": "",
           "type": "address"
         }

@@ -50,13 +50,6 @@ async function main() {
   await tx.wait();
   console.log("✅ Panic wallet set");
 
-  // Mint initial tokens to DAO BEFORE transferring ownership
-  console.log("\n📝 Minting initial tokens to DAO...");
-  const mintAmount = hre.ethers.parseEther("1000000"); // 1 million tokens
-  const mintTx = await daoToken.mint(daoAddress, mintAmount);
-  await mintTx.wait();
-  console.log("✅ Minted", hre.ethers.formatEther(mintAmount), "tokens to DAO");
-
   // Transfer token ownership to DAO
   console.log("\n📝 Transferring DaoToken ownership to GovernanceDAO...");
   const transferTx = await daoToken.transferOwnership(daoAddress);
@@ -67,7 +60,7 @@ async function main() {
   console.log("=======================");
   console.log("DaoToken:", tokenAddress);
   console.log("GovernanceDAO:", daoAddress);
-  console.log("Initial DAO Balance:", hre.ethers.formatEther(mintAmount), "tokens");
+  console.log("Initial DAO token balance: 0 (mint via admin panel after deploy)");
   console.log("\n📝 Update your .env.local with these addresses:");
   console.log(`NEXT_PUBLIC_DAO_TOKEN_ADDRESS=${tokenAddress}`);
   console.log(`NEXT_PUBLIC_GOVERNANCE_DAO_ADDRESS=${daoAddress}`);

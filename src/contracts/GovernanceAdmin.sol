@@ -69,5 +69,11 @@ abstract contract GovernanceAdmin is GovernanceBase {
         bool ok = token.transfer(msg.sender, tokensToBuy);
         require(ok, "Token transfer failed");
     }
-}
 
+    function mintDaoTokens(address to, uint256 amount) external onlyOwner {
+        if (to == address(0) || amount == 0) {
+            revert InvalidParameter();
+        }
+        token.mint(to, amount);
+    }
+}
