@@ -20,10 +20,19 @@ interface StakingPanelProps {
     proposingStakeSince: number;
   };
   lockTimeSeconds: number;
+  minStakeVoting?: string;
+  minStakeProposing?: string;
   onSuccess: () => void;
 }
 
-export default function StakingPanel({ contractAddress, userBalance, onSuccess, lockTimeSeconds }: StakingPanelProps) {
+export default function StakingPanel({
+  contractAddress,
+  userBalance,
+  onSuccess,
+  lockTimeSeconds,
+  minStakeVoting,
+  minStakeProposing,
+}: StakingPanelProps) {
   const { signer, isConnected } = useWeb3();
   const [votingAmount, setVotingAmount] = useState('');
   const [proposingAmount, setProposingAmount] = useState('');
@@ -262,6 +271,11 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess, 
                   disabled={loading}
                 />
               </div>
+              {minStakeVoting && (
+                <p className="text-xs text-zinc-500">
+                  Mínimo requerido para votar: <span className="text-purple-300 font-mono">{parseFloat(minStakeVoting).toFixed(4)} tokens</span>
+                </p>
+              )}
               <div>
                 <label className="text-sm text-zinc-400 mb-2 block">Amount to Unstake (Tokens)</label>
                 <input
@@ -318,6 +332,11 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess, 
                   disabled={loading}
                 />
               </div>
+              {minStakeProposing && (
+                <p className="text-xs text-zinc-500">
+                  Mínimo requerido para proponer: <span className="text-blue-300 font-mono">{parseFloat(minStakeProposing).toFixed(4)} tokens</span>
+                </p>
+              )}
               <div>
                 <label className="text-sm text-zinc-400 mb-2 block">Amount to Unstake (Tokens)</label>
                 <input

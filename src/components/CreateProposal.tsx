@@ -8,14 +8,23 @@ import { useWeb3 } from '@/src/lib/web3/hooks';
 interface CreateProposalProps {
   contractAddress: string;
   onSuccess: () => void;
+  minStakeProposing?: string;
+  proposingStake?: string;
 }
 
-export default function CreateProposal({ contractAddress, onSuccess }: CreateProposalProps) {
+export default function CreateProposal({
+  contractAddress,
+  onSuccess,
+  minStakeProposing,
+  proposingStake,
+}: CreateProposalProps) {
   const { signer, isConnected } = useWeb3();
   const [activeTab, setActiveTab] = useState<'standard' | 'treasury'>('standard');
 
+  const [standardTitle, setStandardTitle] = useState('');
   const [standardDescription, setStandardDescription] = useState('');
   const [treasuryDescription, setTreasuryDescription] = useState('');
+  const [treasuryTitle, setTreasuryTitle] = useState('');
   const [treasuryRecipient, setTreasuryRecipient] = useState('');
   const [treasuryAmount, setTreasuryAmount] = useState('');
 
@@ -23,8 +32,23 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const hasRequiredProposingStake = () => {
+    if (!minStakeProposing) return true;
+    try {
+      const required = ethers.parseEther(minStakeProposing);
+      const current = ethers.parseEther(proposingStake || '0');
+      return current >= required;
+    } catch {
+      return true;
+    }
+  };
+
   const handleCreateStandardProposal = async () => {
-    if (!signer || !standardDescription) return;
+    if (!signer || !standardDescription || !standardTitle) return;
+    if (!hasRequiredProposingStake()) {
+      setError('Necesitas stakear el mínimo requerido para proponer antes de crear una propuesta.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -32,9 +56,10 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
 
     try {
       const contract = getContract(contractAddress, signer);
-      const tx = await contract.createProposal(standardDescription);
+      const tx = await contract.createProposal(standardTitle, standardDescription);
       await tx.wait();
 
+      setStandardTitle('');
       setStandardDescription('');
       setSuccess('Proposal created successfully!');
       onSuccess();
@@ -46,7 +71,18 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
   };
 
   const handleCreateTreasuryProposal = async () => {
-    if (!signer || !treasuryDescription || !treasuryRecipient || !treasuryAmount) return;
+    if (
+      !signer ||
+      !treasuryDescription ||
+      !treasuryRecipient ||
+      !treasuryAmount ||
+      !treasuryTitle
+    )
+      return;
+    if (!hasRequiredProposingStake()) {
+      setError('Necesitas stakear el mínimo requerido para proponer antes de crear una propuesta.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -56,12 +92,14 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
       const contract = getContract(contractAddress, signer);
       const amountInWei = ethers.parseEther(treasuryAmount);
       const tx = await contract.createTreasuryProposal(
+        treasuryTitle,
         treasuryDescription,
         treasuryRecipient,
         amountInWei
       );
       await tx.wait();
 
+      setTreasuryTitle('');
       setTreasuryDescription('');
       setTreasuryRecipient('');
       setTreasuryAmount('');
@@ -107,6 +145,18 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
           {activeTab === 'standard' ? (
             <div className="space-y-4">
               <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Proposal Title</label>
+                <input
+                  type="text"
+                  value={standardTitle}
+                  onChange={(e) => setStandardTitle(e.target.value)}
+                  placeholder="Give your proposal a title..."
+                  className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-yellow-500 focus:outline-none"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
                 <label className="text-sm text-zinc-400 mb-2 block">Proposal Description</label>
                 <textarea
                   value={standardDescription}
@@ -120,7 +170,7 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
 
               <button
                 onClick={handleCreateStandardProposal}
-                disabled={loading || !standardDescription}
+                disabled={loading || !standardDescription || !standardTitle}
                 className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black px-6 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
@@ -132,9 +182,31 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
                   'Create Standard Proposal'
                 )}
               </button>
+              {minStakeProposing && (
+                <p className="text-xs text-zinc-500">
+                  Debes tener al menos{' '}
+                  <span className="text-yellow-300 font-mono">
+                    {parseFloat(minStakeProposing).toFixed(4)} tokens
+                  </span>{' '}
+                  staked en la pestaña "Proposing" para crear propuestas (actualmente tienes{' '}
+                  {parseFloat(proposingStake || '0').toFixed(4)}).
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
+              <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Proposal Title</label>
+                <input
+                  type="text"
+                  value={treasuryTitle}
+                  onChange={(e) => setTreasuryTitle(e.target.value)}
+                  placeholder="Title for treasury proposal..."
+                  className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-green-500 focus:outline-none"
+                  disabled={loading}
+                />
+              </div>
+
               <div>
                 <label className="text-sm text-zinc-400 mb-2 block">Proposal Description</label>
                 <textarea
@@ -173,7 +245,13 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
 
               <button
                 onClick={handleCreateTreasuryProposal}
-                disabled={loading || !treasuryDescription || !treasuryRecipient || !treasuryAmount}
+                disabled={
+                  loading ||
+                  !treasuryDescription ||
+                  !treasuryRecipient ||
+                  !treasuryAmount ||
+                  !treasuryTitle
+                }
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
@@ -185,6 +263,15 @@ export default function CreateProposal({ contractAddress, onSuccess }: CreatePro
                   'Create Treasury Proposal'
                 )}
               </button>
+              {minStakeProposing && (
+                <p className="text-xs text-zinc-500">
+                  Debes tener al menos{' '}
+                  <span className="text-green-300 font-mono">
+                    {parseFloat(minStakeProposing).toFixed(4)} tokens
+                  </span>{' '}
+                  staked en "Proposing" (actualmente tienes {parseFloat(proposingStake || '0').toFixed(4)}).
+                </p>
+              )}
             </div>
           )}
 

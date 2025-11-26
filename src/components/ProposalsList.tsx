@@ -7,15 +7,18 @@ import { useWeb3 } from '@/src/lib/web3/hooks';
 
 interface Proposal {
   id: number;
+  title: string;
   description: string;
   proposer: string;
   votesFor: string;
   votesAgainst: string;
   deadline: number;
   executed: boolean;
+  status: number;
   isTreasuryProposal: boolean;
   recipient?: string;
   amount?: string;
+  hasVoted: boolean;
 }
 
 interface ProposalsListProps {
@@ -28,16 +31,17 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
   const { signer, isConnected, account } = useWeb3();
   const [loading, setLoading] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const defaultGas = { gasLimit: 300_000n };
 
-  const handleVote = async (proposalId: number, support: boolean) => {
-    if (!signer) return;
+  const handleVote = async (proposal: Proposal, support: boolean) => {
+    if (!signer || proposal.hasVoted) return;
 
-    setLoading(proposalId);
+    setLoading(proposal.id);
     setError(null);
 
     try {
       const contract = getContract(contractAddress, signer);
-      const tx = await contract.vote(proposalId, support);
+      const tx = await contract.vote(proposal.id, support, defaultGas);
       await tx.wait();
       onSuccess();
     } catch (err: any) {
@@ -47,17 +51,26 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
     }
   };
 
-  const handleExecute = async (proposalId: number, isTreasuryProposal: boolean) => {
+  const handleExecute = async (proposal: Proposal) => {
     if (!signer) return;
 
-    setLoading(proposalId);
+    setLoading(proposal.id);
     setError(null);
 
     try {
       const contract = getContract(contractAddress, signer);
-      const tx = isTreasuryProposal
-        ? await contract.executeTreasuryProposal(proposalId)
-        : await contract.finalizeProposal(proposalId);
+      let tx;
+      if (proposal.isTreasuryProposal) {
+        if (proposal.status === 0) {
+          tx = await contract.finalizeProposal(proposal.id, defaultGas);
+        } else if (proposal.status === 1 && !proposal.executed) {
+          tx = await contract.executeTreasuryProposal(proposal.id, defaultGas);
+        } else {
+          throw new Error('No hay ninguna acción disponible para esta propuesta.');
+        }
+      } else {
+        tx = await contract.finalizeProposal(proposal.id, defaultGas);
+      }
       await tx.wait();
       onSuccess();
     } catch (err: any) {
@@ -67,8 +80,11 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
     }
   };
 
-  const isExpired = (deadline: number) => {
-    return Date.now() / 1000 > deadline;
+  const isExpired = (proposal: Proposal) => {
+    if (proposal.status !== 0) {
+      return true;
+    }
+    return Date.now() / 1000 > proposal.deadline;
   };
 
   const formatAddress = (address: string) => {
@@ -92,7 +108,21 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
             const totalVotes = BigInt(proposal.votesFor) + BigInt(proposal.votesAgainst);
             const forPercentage = totalVotes > 0n ? Number((BigInt(proposal.votesFor) * 100n) / totalVotes) : 0;
             const againstPercentage = totalVotes > 0n ? Number((BigInt(proposal.votesAgainst) * 100n) / totalVotes) : 0;
-            const expired = isExpired(proposal.deadline);
+            const expired = isExpired(proposal);
+            const isActive = proposal.status === 0;
+            const isAccepted = proposal.status === 1;
+            const isRejected = proposal.status === 2;
+            const canExecute =
+              proposal.isTreasuryProposal
+                ? (isActive && expired) || (isAccepted && !proposal.executed)
+                : expired && isActive && !proposal.executed;
+            const alreadyVoted = proposal.hasVoted;
+            const canVote = isActive && !expired && !proposal.executed && !alreadyVoted;
+            const executeLabel = proposal.isTreasuryProposal
+              ? isActive && expired
+                ? 'Finalize'
+                : 'Execute Payout'
+              : 'Finalize';
 
             return (
               <div
@@ -115,12 +145,30 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
                           EXECUTED
                         </span>
                       )}
-                      {expired && !proposal.executed && (
+                      {alreadyVoted && !proposal.executed && (
+                        <span className="text-xs font-mono bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
+                          VOTED
+                        </span>
+                      )}
+                      {isAccepted && !proposal.isTreasuryProposal && (
+                        <span className="text-xs font-mono bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                          ACCEPTED
+                        </span>
+                      )}
+                      {isRejected && (
+                        <span className="text-xs font-mono bg-red-500/20 text-red-400 px-2 py-1 rounded">
+                          REJECTED
+                        </span>
+                      )}
+                      {expired && isActive && (
                         <span className="text-xs font-mono bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
                           EXPIRED
                         </span>
                       )}
                     </div>
+                    {proposal.title && (
+                      <p className="text-white font-semibold text-lg mb-1">{proposal.title}</p>
+                    )}
                     <p className="text-white font-medium mb-2">{proposal.description}</p>
                     <p className="text-xs text-zinc-500 mb-2">
                       Proposer: <span className="font-mono">{formatAddress(proposal.proposer)}</span>
@@ -168,25 +216,25 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
 
                 <div className="grid grid-cols-3 gap-2">
                   <button
-                    onClick={() => handleVote(proposal.id, true)}
-                    disabled={loading === proposal.id || expired || proposal.executed}
+                    onClick={() => handleVote(proposal, true)}
+                    disabled={loading === proposal.id || !canVote}
                     className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Vote For
                   </button>
                   <button
-                    onClick={() => handleVote(proposal.id, false)}
-                    disabled={loading === proposal.id || expired || proposal.executed}
+                    onClick={() => handleVote(proposal, false)}
+                    disabled={loading === proposal.id || !canVote}
                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Vote Against
                   </button>
                   <button
-                    onClick={() => handleExecute(proposal.id, proposal.isTreasuryProposal)}
-                    disabled={loading === proposal.id || !expired || proposal.executed}
+                    onClick={() => handleExecute(proposal)}
+                    disabled={loading === proposal.id || !canExecute}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading === proposal.id ? 'Processing...' : 'Execute'}
+                    {loading === proposal.id ? 'Processing...' : executeLabel}
                   </button>
                 </div>
               </div>

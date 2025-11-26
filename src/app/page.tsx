@@ -10,6 +10,8 @@ import StakingPanel from '@/src/components/StakingPanel';
 import CreateProposal from '@/src/components/CreateProposal';
 import ProposalsList from '@/src/components/ProposalsList';
 import PanicControls from '@/src/components/PanicControls';
+import DaoParametersForm from '@/src/components/DaoParametersForm';
+import TransferOwnership from '@/src/components/TransferOwnership';
 
 interface HealthData {
   network: string;
@@ -39,15 +41,18 @@ interface TreasuryData {
 
 interface Proposal {
   id: number;
+  title: string;
   description: string;
   proposer: string;
   votesFor: string;
   votesAgainst: string;
   deadline: number;
   executed: boolean;
+  status: number;
   isTreasuryProposal: boolean;
   recipient?: string;
   amount?: string;
+  hasVoted: boolean;
 }
 
 interface UserBalance {
@@ -57,6 +62,7 @@ interface UserBalance {
   votingPower: string;
   votingStakeSince: number;
   proposingStakeSince: number;
+  daoEthBalance: string;
 }
 
 export default function Home() {
@@ -73,7 +79,8 @@ export default function Home() {
     proposingStake: '0',
     votingPower: '0',
     votingStakeSince: 0,
-    proposingStakeSince: 0
+    proposingStakeSince: 0,
+    daoEthBalance: '0'
   });
   const [contractAddress, setContractAddress] = useState('');
 
@@ -145,7 +152,7 @@ export default function Home() {
           directProvider
         );
 
-        const [tokenBalance, votingStakeInfo, proposingStakeInfo, votingPower, proposalsCount] = await Promise.all([
+        const [tokenBalance, votingStakeInfo, proposingStakeInfo, votingPower, proposalsCount, daoEthBalance] = await Promise.all([
           tokenContract.balanceOf(account).catch((err: Error) => {
             console.error('Error fetching token balance:', err);
             return BigInt(0);
@@ -165,6 +172,10 @@ export default function Home() {
           contract.nextProposalId().catch((err: Error) => {
             console.error('Error fetching next proposal ID:', err);
             return BigInt(0);
+          }),
+          directProvider.getBalance(addr).catch((err: Error) => {
+            console.error('Error fetching DAO ETH balance:', err);
+            return BigInt(0);
           })
         ]);
 
@@ -174,7 +185,8 @@ export default function Home() {
           proposingStake: ethers.formatEther(proposingStakeInfo.amount || proposingStakeInfo[0] || 0),
           votingPower: votingPower.toString(),
           votingStakeSince: Number(votingStakeInfo.since || votingStakeInfo[1] || 0),
-          proposingStakeSince: Number(proposingStakeInfo.since || proposingStakeInfo[1] || 0)
+          proposingStakeSince: Number(proposingStakeInfo.since || proposingStakeInfo[1] || 0),
+          daoEthBalance: ethers.formatEther(daoEthBalance)
         });
 
         // Fetch all proposals
@@ -184,18 +196,57 @@ export default function Home() {
         }
 
         const proposalsData = await Promise.all(proposalPromises);
-        const formattedProposals = proposalsData.map((p: any, index: number) => ({
-          id: index,
-          description: p.description,
-          proposer: p.proposer,
-          votesFor: p.votesFor.toString(),
-          votesAgainst: p.votesAgainst.toString(),
-          deadline: Number(p.deadline),
-          executed: p.executed,
-          isTreasuryProposal: p.isTreasuryProposal,
-          recipient: p.recipient,
-          amount: p.amount?.toString()
-        }));
+
+        let userVotes: boolean[] = [];
+        if (account) {
+          const votePromises = [];
+          for (let i = 0; i < Number(proposalsCount); i++) {
+            votePromises.push(
+              contract.hasVoted(i, account).catch((err: Error) => {
+                console.error('Error fetching vote status:', err);
+                return false;
+              })
+            );
+          }
+          userVotes = await Promise.all(votePromises);
+        }
+
+        const formattedProposals = proposalsData.map((p: any, index: number) => {
+          const getValue = (primary: any, fallback: any, defaultValue: any = null) => {
+            if (primary !== undefined && primary !== null) return primary;
+            if (fallback !== undefined && fallback !== null) return fallback;
+            return defaultValue;
+          };
+
+          const id = Number(getValue(p.id, p[0], index));
+          const title = getValue(p.title, p[2], '');
+          const description = getValue(p.description, p[3], '');
+          const proposer = getValue(p.proposer, p[1], '');
+          const votesForRaw = getValue(p.forVotes, p[6], 0);
+          const votesAgainstRaw = getValue(p.againstVotes, p[7], 0);
+          const deadlineRaw = getValue(p.deadline, p[5], 0);
+          const status = Number(getValue(p.status, p[8], 0));
+          const executed = Boolean(getValue(p.executed, p[9], false));
+          const isTreasury = Boolean(getValue(p.isTreasury, p[10], false));
+          const recipient = getValue(p.recipient, p[11], undefined);
+          const amountRaw = getValue(p.amount, p[12], undefined);
+
+          return {
+            id,
+            title,
+            description,
+            proposer,
+            votesFor: votesForRaw?.toString?.() ?? '0',
+            votesAgainst: votesAgainstRaw?.toString?.() ?? '0',
+            deadline: Number(deadlineRaw ?? 0),
+            status,
+            executed,
+            isTreasuryProposal: isTreasury,
+            recipient,
+            amount: amountRaw !== undefined && amountRaw !== null ? amountRaw.toString() : undefined,
+            hasVoted: userVotes[index] ?? false
+          };
+        });
 
         setProposals(formattedProposals);
       } catch (error) {
@@ -342,6 +393,8 @@ export default function Home() {
           <StakingPanel
             contractAddress={contractAddress}
             userBalance={userBalance}
+            minStakeVoting={parameters?.minStakeForVotingFormatted}
+            minStakeProposing={parameters?.minStakeForProposingFormatted}
             lockTimeSeconds={parameters?.minStakeLockTime || 0}
             onSuccess={refreshData}
           />
@@ -349,7 +402,12 @@ export default function Home() {
 
         {/* Proposals Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <CreateProposal contractAddress={contractAddress} onSuccess={refreshData} />
+          <CreateProposal
+            contractAddress={contractAddress}
+            proposingStake={userBalance.proposingStake}
+            minStakeProposing={parameters?.minStakeForProposingFormatted}
+            onSuccess={refreshData}
+          />
           <ProposalsList
             contractAddress={contractAddress}
             proposals={proposals}
@@ -421,10 +479,21 @@ export default function Home() {
         </div>
 
         {isOwnerConnected && contractAddress && (
-          <div className="mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
             <PanicControls
               contractAddress={contractAddress}
               isPaused={status?.paused ?? false}
+              ownerAddress={status?.owner ?? ''}
+              onSuccess={refreshData}
+            />
+            <DaoParametersForm
+              contractAddress={contractAddress}
+              parameters={parameters}
+              ownerAddress={status?.owner ?? ''}
+              onSuccess={refreshData}
+            />
+            <TransferOwnership
+              contractAddress={contractAddress}
               ownerAddress={status?.owner ?? ''}
               onSuccess={refreshData}
             />
