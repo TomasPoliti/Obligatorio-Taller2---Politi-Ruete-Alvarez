@@ -140,6 +140,10 @@ abstract contract GovernanceBase is Ownable {
         }
         token = IERC20(tokenAddress);
 
+        // Set the panic wallet to the initial owner so the DAO works right after deployment.
+        panicWallet = initialOwner;
+        emit PanicWalletUpdated(initialOwner);
+
         _updateParameters(
             _tokenPriceWei,
             _minStakeForVoting,

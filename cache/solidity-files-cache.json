@@ -275,8 +275,8 @@
       ]
     },
     "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceBase.sol": {
-      "lastModificationDate": 1764117434501,
-      "contentHash": "28dc2964e89f15db478db4b8c018bf94",
+      "lastModificationDate": 1764124351483,
+      "contentHash": "d30f356b297f5e9185cb85760d852b63",
       "sourceName": "src/contracts/GovernanceBase.sol",
       "solcConfig": {
         "version": "0.8.20",

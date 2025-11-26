@@ -5,6 +5,11 @@ import { ethers } from 'ethers';
 import { getContract } from '@/src/lib/web3/contract';
 import { useWeb3 } from '@/src/lib/web3/hooks';
 
+const ERC20_ABI = [
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+];
+
 interface StakingPanelProps {
   contractAddress: string;
   userBalance: { votingStake: string; proposingStake: string; votingPower: string };
@@ -15,9 +20,29 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
   const { signer, isConnected } = useWeb3();
   const [votingAmount, setVotingAmount] = useState('');
   const [proposingAmount, setProposingAmount] = useState('');
+  const [customGasLimit, setCustomGasLimit] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'voting' | 'proposing'>('voting');
+  const tokenAddress = process.env.NEXT_PUBLIC_DAO_TOKEN_ADDRESS;
+
+  const ensureAllowance = async (requiredAmount: bigint) => {
+    if (!signer) {
+      throw new Error('Wallet not connected');
+    }
+    if (!tokenAddress) {
+      throw new Error('Token contract address not configured');
+    }
+
+    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    const userAddress = await signer.getAddress();
+    const currentAllowance = await tokenContract.allowance(userAddress, contractAddress);
+
+    if (currentAllowance < requiredAmount) {
+      const approveTx = await tokenContract.approve(contractAddress, requiredAmount);
+      await approveTx.wait();
+    }
+  };
 
   const handleStakeVoting = async () => {
     if (!signer || !votingAmount) return;
@@ -28,7 +53,9 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
     try {
       const contract = getContract(contractAddress, signer);
       const amountInWei = ethers.parseEther(votingAmount);
-      const tx = await contract.stakeForVoting(amountInWei);
+      await ensureAllowance(amountInWei);
+      const gasOverrides = customGasLimit.trim() ? { gasLimit: customGasLimit.trim() } : undefined;
+      const tx = await contract.stakeForVoting(amountInWei, gasOverrides);
       await tx.wait();
 
       setVotingAmount('');
@@ -49,7 +76,9 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
     try {
       const contract = getContract(contractAddress, signer);
       const amountInWei = ethers.parseEther(proposingAmount);
-      const tx = await contract.stakeForProposing(amountInWei);
+      await ensureAllowance(amountInWei);
+      const gasOverrides = customGasLimit.trim() ? { gasLimit: customGasLimit.trim() } : undefined;
+      const tx = await contract.stakeForProposing(amountInWei, gasOverrides);
       await tx.wait();
 
       setProposingAmount('');
@@ -157,6 +186,18 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                   disabled={loading}
                 />
               </div>
+              <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Gas Limit (optional)</label>
+                <input
+                  type="number"
+                  value={customGasLimit}
+                  onChange={(e) => setCustomGasLimit(e.target.value)}
+                  placeholder="Ej: 300000"
+                  className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                  disabled={loading}
+                />
+                <p className="text-xs text-zinc-500 mt-1">Si el estimado automático falla, ingresa un gas limit manual.</p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleStakeVoting}
@@ -186,6 +227,18 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                   className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
                   disabled={loading}
                 />
+              </div>
+              <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Gas Limit (optional)</label>
+                <input
+                  type="number"
+                  value={customGasLimit}
+                  onChange={(e) => setCustomGasLimit(e.target.value)}
+                  placeholder="Ej: 300000"
+                  className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
+                  disabled={loading}
+                />
+                <p className="text-xs text-zinc-500 mt-1">Este valor se usará al enviar la transacción.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button
