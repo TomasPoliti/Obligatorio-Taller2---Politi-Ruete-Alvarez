@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ethers } from 'ethers';
 import { getContract } from '@/src/lib/web3/contract';
 import { useWeb3 } from '@/src/lib/web3/hooks';
+import { getFriendlyErrorMessage } from '@/src/lib/errors/messages';
 
 interface CreateProposalProps {
   contractAddress: string;
@@ -64,7 +65,7 @@ export default function CreateProposal({
       setSuccess('Proposal created successfully!');
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Failed to create proposal');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export default function CreateProposal({
       setSuccess('Treasury proposal created successfully!');
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Failed to create treasury proposal');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }

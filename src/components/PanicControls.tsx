@@ -3,18 +3,19 @@
 import { useState } from "react";
 import { useWeb3 } from "@/src/lib/web3/hooks";
 import { getContract } from "@/src/lib/web3/contract";
+import { getFriendlyErrorMessage } from "@/src/lib/errors/messages";
 
 interface PanicControlsProps {
   contractAddress: string;
   isPaused: boolean;
-  ownerAddress?: string;
+  panicWallet?: string;
   onSuccess: () => void;
 }
 
 export default function PanicControls({
   contractAddress,
   isPaused,
-  ownerAddress,
+  panicWallet,
   onSuccess,
 }: PanicControlsProps) {
   const { signer, account, isConnected } = useWeb3();
@@ -23,15 +24,15 @@ export default function PanicControls({
   );
   const [error, setError] = useState<string | null>(null);
 
-  const isOwnerConnected =
+  const isPanicWalletConnected =
     !!signer &&
-    !!ownerAddress &&
+    !!panicWallet &&
     !!account &&
-    account.toLowerCase() === ownerAddress.toLowerCase();
+    account.toLowerCase() === panicWallet.toLowerCase();
 
   const handleAction = async (action: "panic" | "calm") => {
-    if (!signer || !isOwnerConnected) {
-      setError("Debes conectarte con la wallet owner para controlar el pánico.");
+    if (!signer || !isPanicWalletConnected) {
+      setError("Debes conectarte con la wallet de pánico para usar estos controles.");
       return;
     }
 
@@ -45,13 +46,13 @@ export default function PanicControls({
       await tx.wait();
       onSuccess();
     } catch (err: any) {
-      setError(err?.reason || err?.message || "Transacción fallida");
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoadingAction(null);
     }
   };
 
-  if (!isConnected || !account || !ownerAddress || !isOwnerConnected) {
+  if (!isConnected || !account || !panicWallet || !isPanicWalletConnected) {
     return null;
   }
 

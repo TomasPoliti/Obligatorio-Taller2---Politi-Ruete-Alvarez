@@ -504,12 +504,12 @@ export default function Home() {
           </div>
         </div>
 
-        {isOwnerConnected && contractAddress && (
+        {contractAddress && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <PanicControls
               contractAddress={contractAddress}
               isPaused={status?.paused ?? false}
-              ownerAddress={status?.owner ?? ''}
+              panicWallet={status?.panicWallet ?? ''}
               onSuccess={refreshData}
             />
             <DaoParametersForm

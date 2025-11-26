@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { getContract } from "@/src/lib/web3/contract";
 import { useWeb3 } from "@/src/lib/web3/hooks";
+import { getFriendlyErrorMessage } from "@/src/lib/errors/messages";
 
 interface TokenPurchaseProps {
   contractAddress: string;
@@ -62,7 +63,7 @@ export default function TokenPurchase({
       setAmount("");
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || "Transaction failed");
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }

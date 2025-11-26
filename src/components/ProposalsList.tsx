@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ethers } from 'ethers';
 import { getContract } from '@/src/lib/web3/contract';
 import { useWeb3 } from '@/src/lib/web3/hooks';
+import { getFriendlyErrorMessage } from '@/src/lib/errors/messages';
 
 interface Proposal {
   id: number;
@@ -46,7 +47,7 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
       await tx.wait();
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Vote failed');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(null);
     }
@@ -75,7 +76,7 @@ export default function ProposalsList({ contractAddress, proposals, onSuccess }:
       await tx.wait();
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Execution failed');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(null);
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { getContract } from '@/src/lib/web3/contract';
 import { useWeb3 } from '@/src/lib/web3/hooks';
+import { getFriendlyErrorMessage } from '@/src/lib/errors/messages';
 
 const ERC20_ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
@@ -130,7 +131,7 @@ export default function StakingPanel({
       setVotingAmount('');
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Transaction failed');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -153,7 +154,7 @@ export default function StakingPanel({
       setProposingAmount('');
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Transaction failed');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -178,7 +179,7 @@ export default function StakingPanel({
       setUnstakeVotingAmount('');
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Transaction failed');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -203,7 +204,7 @@ export default function StakingPanel({
       setUnstakeProposingAmount('');
       onSuccess();
     } catch (err: any) {
-      setError(err.reason || err.message || 'Transaction failed');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }

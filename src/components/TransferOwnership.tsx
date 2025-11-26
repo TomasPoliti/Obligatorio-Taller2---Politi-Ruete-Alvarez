@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { useWeb3 } from "@/src/lib/web3/hooks";
 import { getContract } from "@/src/lib/web3/contract";
+import { getFriendlyErrorMessage } from "@/src/lib/errors/messages";
 
 interface TransferOwnershipProps {
   contractAddress: string;
@@ -47,7 +48,7 @@ export default function TransferOwnership({
       setNewOwner("");
       onSuccess();
     } catch (err: any) {
-      setError(err?.reason || err?.message || "Transacción fallida");
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
