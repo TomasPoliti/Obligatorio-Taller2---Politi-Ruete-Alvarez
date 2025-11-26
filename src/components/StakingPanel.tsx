@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { getContract } from '@/src/lib/web3/contract';
 import { useWeb3 } from '@/src/lib/web3/hooks';
@@ -12,19 +12,37 @@ const ERC20_ABI = [
 
 interface StakingPanelProps {
   contractAddress: string;
-  userBalance: { votingStake: string; proposingStake: string; votingPower: string };
+  userBalance: {
+    votingStake: string;
+    proposingStake: string;
+    votingPower: string;
+    votingStakeSince: number;
+    proposingStakeSince: number;
+  };
+  lockTimeSeconds: number;
   onSuccess: () => void;
 }
 
-export default function StakingPanel({ contractAddress, userBalance, onSuccess }: StakingPanelProps) {
+export default function StakingPanel({ contractAddress, userBalance, onSuccess, lockTimeSeconds }: StakingPanelProps) {
   const { signer, isConnected } = useWeb3();
   const [votingAmount, setVotingAmount] = useState('');
   const [proposingAmount, setProposingAmount] = useState('');
   const [customGasLimit, setCustomGasLimit] = useState('');
+  const [unstakeVotingAmount, setUnstakeVotingAmount] = useState('');
+  const [unstakeProposingAmount, setUnstakeProposingAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'voting' | 'proposing'>('voting');
   const tokenAddress = process.env.NEXT_PUBLIC_DAO_TOKEN_ADDRESS;
+  const [currentTimestamp, setCurrentTimestamp] = useState(() => Math.floor(Date.now() / 1000));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTimestamp(Math.floor(Date.now() / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const ensureAllowance = async (requiredAmount: bigint) => {
     if (!signer) {
@@ -44,6 +62,48 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
     }
   };
 
+  const getGasOverrides = () => {
+    const value = customGasLimit.trim();
+    if (!value) {
+      return undefined;
+    }
+
+    try {
+      const parsed = BigInt(value);
+      if (parsed < 50_000n) {
+        throw new Error('Gas limit demasiado bajo. Ingresa al menos 50000.');
+      }
+      return { gasLimit: parsed };
+    } catch (error) {
+      throw new Error('Gas limit inválido. Usa solo números enteros.');
+    }
+  };
+  const getUnlockTimestamp = (since: number) => {
+    if (!since || lockTimeSeconds === 0) {
+      return 0;
+    }
+    return since + lockTimeSeconds;
+  };
+
+  const isStakeUnlocked = (since: number) => {
+    const unlock = getUnlockTimestamp(since);
+    if (unlock === 0) {
+      return true;
+    }
+    return currentTimestamp >= unlock;
+  };
+
+  const formatUnlockDate = (since: number) => {
+    const unlock = getUnlockTimestamp(since);
+    if (unlock === 0) {
+      return 'Sin bloqueo';
+    }
+    const date = new Date(unlock * 1000);
+    return date.toLocaleString();
+  };
+  const votingUnlocked = isStakeUnlocked(userBalance.votingStakeSince);
+  const proposingUnlocked = isStakeUnlocked(userBalance.proposingStakeSince);
+
   const handleStakeVoting = async () => {
     if (!signer || !votingAmount) return;
 
@@ -54,7 +114,7 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
       const contract = getContract(contractAddress, signer);
       const amountInWei = ethers.parseEther(votingAmount);
       await ensureAllowance(amountInWei);
-      const gasOverrides = customGasLimit.trim() ? { gasLimit: customGasLimit.trim() } : undefined;
+      const gasOverrides = getGasOverrides();
       const tx = await contract.stakeForVoting(amountInWei, gasOverrides);
       await tx.wait();
 
@@ -77,7 +137,7 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
       const contract = getContract(contractAddress, signer);
       const amountInWei = ethers.parseEther(proposingAmount);
       await ensureAllowance(amountInWei);
-      const gasOverrides = customGasLimit.trim() ? { gasLimit: customGasLimit.trim() } : undefined;
+      const gasOverrides = getGasOverrides();
       const tx = await contract.stakeForProposing(amountInWei, gasOverrides);
       await tx.wait();
 
@@ -91,15 +151,22 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
   };
 
   const handleUnstakeVoting = async () => {
-    if (!signer) return;
+    if (!signer || !unstakeVotingAmount) return;
+    if (!isStakeUnlocked(userBalance.votingStakeSince)) {
+      setError(`Tus tokens para votar estarán desbloqueados el ${formatUnlockDate(userBalance.votingStakeSince)}`);
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
       const contract = getContract(contractAddress, signer);
-      const tx = await contract.unstakeFromVoting();
+      const amountInWei = ethers.parseEther(unstakeVotingAmount);
+      const gasOverrides = getGasOverrides();
+      const tx = await contract.unstakeFromVoting(amountInWei, gasOverrides);
       await tx.wait();
+      setUnstakeVotingAmount('');
       onSuccess();
     } catch (err: any) {
       setError(err.reason || err.message || 'Transaction failed');
@@ -109,15 +176,22 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
   };
 
   const handleUnstakeProposing = async () => {
-    if (!signer) return;
+    if (!signer || !unstakeProposingAmount) return;
+    if (!isStakeUnlocked(userBalance.proposingStakeSince)) {
+      setError(`Tus tokens para proponer estarán desbloqueados el ${formatUnlockDate(userBalance.proposingStakeSince)}`);
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
       const contract = getContract(contractAddress, signer);
-      const tx = await contract.unstakeFromProposing();
+      const amountInWei = ethers.parseEther(unstakeProposingAmount);
+      const gasOverrides = getGasOverrides();
+      const tx = await contract.unstakeFromProposing(amountInWei, gasOverrides);
       await tx.wait();
+      setUnstakeProposingAmount('');
       onSuccess();
     } catch (err: any) {
       setError(err.reason || err.message || 'Transaction failed');
@@ -142,10 +216,12 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
               <div>
                 <p className="text-xs text-zinc-500 mb-1">Voting Stake</p>
                 <p className="font-mono text-lg font-bold text-purple-400">{parseFloat(userBalance.votingStake).toFixed(4)}</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Desbloqueo: {formatUnlockDate(userBalance.votingStakeSince)}</p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 mb-1">Proposing Stake</p>
                 <p className="font-mono text-lg font-bold text-blue-400">{parseFloat(userBalance.proposingStake).toFixed(4)}</p>
+                <p className="text-[11px] text-zinc-500 mt-1">Desbloqueo: {formatUnlockDate(userBalance.proposingStakeSince)}</p>
               </div>
             </div>
             <div className="pt-2 border-t border-zinc-800">
@@ -187,6 +263,17 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                 />
               </div>
               <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Amount to Unstake (Tokens)</label>
+                <input
+                  type="number"
+                  value={unstakeVotingAmount}
+                  onChange={(e) => setUnstakeVotingAmount(e.target.value)}
+                  placeholder="0.0"
+                  className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
+                  disabled={loading}
+                />
+              </div>
+              <div>
                 <label className="text-sm text-zinc-400 mb-2 block">Gas Limit (optional)</label>
                 <input
                   type="number"
@@ -196,7 +283,7 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                   className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:outline-none"
                   disabled={loading}
                 />
-                <p className="text-xs text-zinc-500 mt-1">Si el estimado automático falla, ingresa un gas limit manual.</p>
+                <p className="text-xs text-zinc-500 mt-1">Si el estimado automático falla, ingresa un gas limit manual (mínimo 50000).</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -208,12 +295,15 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                 </button>
                 <button
                   onClick={handleUnstakeVoting}
-                  disabled={loading || parseFloat(userBalance.votingStake) === 0}
+                  disabled={loading || !unstakeVotingAmount || !votingUnlocked}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Unstake
                 </button>
               </div>
+              {!votingUnlocked && (
+                <p className="text-xs text-amber-400">Tus tokens estarán desbloqueados el {formatUnlockDate(userBalance.votingStakeSince)}.</p>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -229,6 +319,17 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                 />
               </div>
               <div>
+                <label className="text-sm text-zinc-400 mb-2 block">Amount to Unstake (Tokens)</label>
+                <input
+                  type="number"
+                  value={unstakeProposingAmount}
+                  onChange={(e) => setUnstakeProposingAmount(e.target.value)}
+                  placeholder="0.0"
+                  className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
+                  disabled={loading}
+                />
+              </div>
+              <div>
                 <label className="text-sm text-zinc-400 mb-2 block">Gas Limit (optional)</label>
                 <input
                   type="number"
@@ -238,7 +339,7 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                   className="w-full bg-[#0a0a0a] border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:outline-none"
                   disabled={loading}
                 />
-                <p className="text-xs text-zinc-500 mt-1">Este valor se usará al enviar la transacción.</p>
+                <p className="text-xs text-zinc-500 mt-1">Si el estimado automático falla, ingresa un gas limit manual (mínimo 50000).</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -250,12 +351,15 @@ export default function StakingPanel({ contractAddress, userBalance, onSuccess }
                 </button>
                 <button
                   onClick={handleUnstakeProposing}
-                  disabled={loading || parseFloat(userBalance.proposingStake) === 0}
+                  disabled={loading || !unstakeProposingAmount || !proposingUnlocked}
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Unstake
                 </button>
               </div>
+              {!proposingUnlocked && (
+                <p className="text-xs text-amber-400">Tus tokens estarán desbloqueados el {formatUnlockDate(userBalance.proposingStakeSince)}.</p>
+              )}
             </div>
           )}
 

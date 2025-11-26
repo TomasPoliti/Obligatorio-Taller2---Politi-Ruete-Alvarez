@@ -9,6 +9,7 @@ import TokenPurchase from '@/src/components/TokenPurchase';
 import StakingPanel from '@/src/components/StakingPanel';
 import CreateProposal from '@/src/components/CreateProposal';
 import ProposalsList from '@/src/components/ProposalsList';
+import PanicControls from '@/src/components/PanicControls';
 
 interface HealthData {
   network: string;
@@ -54,6 +55,8 @@ interface UserBalance {
   votingStake: string;
   proposingStake: string;
   votingPower: string;
+  votingStakeSince: number;
+  proposingStakeSince: number;
 }
 
 export default function Home() {
@@ -68,7 +71,9 @@ export default function Home() {
     tokens: '0',
     votingStake: '0',
     proposingStake: '0',
-    votingPower: '0'
+    votingPower: '0',
+    votingStakeSince: 0,
+    proposingStakeSince: 0
   });
   const [contractAddress, setContractAddress] = useState('');
 
@@ -167,7 +172,9 @@ export default function Home() {
           tokens: ethers.formatEther(tokenBalance),
           votingStake: ethers.formatEther(votingStakeInfo.amount || votingStakeInfo[0] || 0),
           proposingStake: ethers.formatEther(proposingStakeInfo.amount || proposingStakeInfo[0] || 0),
-          votingPower: votingPower.toString()
+          votingPower: votingPower.toString(),
+          votingStakeSince: Number(votingStakeInfo.since || votingStakeInfo[1] || 0),
+          proposingStakeSince: Number(proposingStakeInfo.since || proposingStakeInfo[1] || 0)
         });
 
         // Fetch all proposals
@@ -205,6 +212,11 @@ export default function Home() {
       window.location.reload();
     }
   };
+
+  const isOwnerConnected =
+    account && status?.owner
+      ? account.toLowerCase() === status.owner.toLowerCase()
+      : false;
 
   if (loading) {
     return (
@@ -330,6 +342,7 @@ export default function Home() {
           <StakingPanel
             contractAddress={contractAddress}
             userBalance={userBalance}
+            lockTimeSeconds={parameters?.minStakeLockTime || 0}
             onSuccess={refreshData}
           />
         </div>
@@ -406,6 +419,17 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {isOwnerConnected && contractAddress && (
+          <div className="mb-8">
+            <PanicControls
+              contractAddress={contractAddress}
+              isPaused={status?.paused ?? false}
+              ownerAddress={status?.owner ?? ''}
+              onSuccess={refreshData}
+            />
+          </div>
+        )}
 
         <footer className="text-center text-zinc-500 text-sm">
           <p>Data auto-refreshes every 10 seconds</p>

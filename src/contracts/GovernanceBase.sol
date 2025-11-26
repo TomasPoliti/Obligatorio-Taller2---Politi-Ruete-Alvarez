@@ -119,7 +119,7 @@ abstract contract GovernanceBase is Ownable {
     }
 
     modifier onlyPanicWallet() {
-        if (msg.sender != panicWallet) {
+        if (msg.sender != panicWallet && msg.sender != owner()) {
             revert NotPanicWallet();
         }
         _;
@@ -166,7 +166,6 @@ abstract contract GovernanceBase is Ownable {
             _tokenPriceWei == 0 ||
             _minStakeForVoting == 0 ||
             _minStakeForProposing == 0 ||
-            _minStakeLockTime == 0 ||
             _proposalDuration == 0 ||
             _tokensPerVotePower == 0
         ) {
