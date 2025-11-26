@@ -1,8 +1,8 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\DaoToken.sol": {
-      "lastModificationDate": 1764104954083,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\DaoToken.sol": {
+      "lastModificationDate": 1764117434500,
       "contentHash": "697554fea665a9e99fe193d1ff99886c",
       "sourceName": "src/contracts/DaoToken.sol",
       "solcConfig": {
@@ -41,8 +41,8 @@
         "DaoToken"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\access\\Ownable.sol": {
-      "lastModificationDate": 1764105149401,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\access\\Ownable.sol": {
+      "lastModificationDate": 1764117543144,
       "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
@@ -80,8 +80,8 @@
         "Ownable"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
-      "lastModificationDate": 1764105146551,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
+      "lastModificationDate": 1764117541756,
       "contentHash": "59dfce11284f2636db261df9b6a18f81",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
@@ -122,8 +122,8 @@
         "ERC20"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
-      "lastModificationDate": 1764105143185,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
+      "lastModificationDate": 1764117540512,
       "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -159,8 +159,8 @@
         "Context"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
-      "lastModificationDate": 1764105148511,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
+      "lastModificationDate": 1764117542782,
       "contentHash": "9261adf6457863de3e9892f51317ec89",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
@@ -196,8 +196,8 @@
         "IERC20"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
-      "lastModificationDate": 1764105144401,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
+      "lastModificationDate": 1764117541128,
       "contentHash": "5041977bbe908de2e6ed0270447f79ad",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -235,8 +235,8 @@
         "IERC721Errors"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
-      "lastModificationDate": 1764105148541,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
+      "lastModificationDate": 1764117542800,
       "contentHash": "513778b30d2750f5d2b9b19bbcf748a5",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {
@@ -274,8 +274,8 @@
         "IERC20Metadata"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceBase.sol": {
-      "lastModificationDate": 1764104954085,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceBase.sol": {
+      "lastModificationDate": 1764117434501,
       "contentHash": "28dc2964e89f15db478db4b8c018bf94",
       "sourceName": "src/contracts/GovernanceBase.sol",
       "solcConfig": {
@@ -314,8 +314,8 @@
         "GovernanceBase"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceAdmin.sol": {
-      "lastModificationDate": 1764104954083,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceAdmin.sol": {
+      "lastModificationDate": 1764117434501,
       "contentHash": "f174b8c06bfc7879f0f70369b2223929",
       "sourceName": "src/contracts/GovernanceAdmin.sol",
       "solcConfig": {
@@ -353,8 +353,8 @@
         "GovernanceAdmin"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceStaking.sol": {
-      "lastModificationDate": 1764104954086,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceStaking.sol": {
+      "lastModificationDate": 1764117434503,
       "contentHash": "6b2cf21ab439f1dee8e456e1d6dd75be",
       "sourceName": "src/contracts/GovernanceStaking.sol",
       "solcConfig": {
@@ -392,8 +392,8 @@
         "GovernanceStaking"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceProposals.sol": {
-      "lastModificationDate": 1764104954086,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceProposals.sol": {
+      "lastModificationDate": 1764117434502,
       "contentHash": "8ba7ba032843fb74ee3a7bcd67052862",
       "sourceName": "src/contracts/GovernanceProposals.sol",
       "solcConfig": {
@@ -431,8 +431,8 @@
         "GovernanceProposals"
       ]
     },
-    "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceDAO.sol": {
-      "lastModificationDate": 1764104954085,
+    "C:\\Facultad\\Taller 2\\Obligatorio\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceDAO.sol": {
+      "lastModificationDate": 1764117434502,
       "contentHash": "091d16bacc58fb1be267095544472ba8",
       "sourceName": "src/contracts/GovernanceDAO.sol",
       "solcConfig": {

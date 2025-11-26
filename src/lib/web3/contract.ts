@@ -9,7 +9,7 @@ export function getContract(address: string, signerOrProvider: JsonRpcSigner | B
 
 export async function getContractAddress(chainId: number): Promise<string> {
   // For hardhat local network
-  if (chainId === 31337) {
+  if (chainId === 1337) {
     const response = await fetch('/api/dao/status');
     const data = await response.json();
     // Extract from owner or get from environment

@@ -1,3 +1,5 @@
+await ethers.provider.getCode(process.env.NEXT_PUBLIC_DAO_TOKEN_ADDRESS)
+await ethers.provider.getCode('0x4e3B2824554941607E73b3EaEbFA5c9A5b3eff8B')
 }
   console.log("DAO balance:", ethers.formatUnits(daoBal, decimals));
   const daoBal = await token.balanceOf(daoAddress);
