@@ -1,6 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config({ path: ".env.local" });
-require("solidity-coverage");
 
 /** @type import("hardhat/config").HardhatUserConfig */
 
