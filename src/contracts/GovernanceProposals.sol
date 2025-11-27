@@ -106,8 +106,27 @@ abstract contract GovernanceProposals is GovernanceStaking {
             revert VotingNotAllowed();
         }
 
-        if (p.forVotes > p.againstVotes) {
-            p.status = ProposalStatus.ACCEPTED;
+        // Calcular total de votos y quorum
+        uint256 totalVotes = p.forVotes + p.againstVotes;
+        
+        // Verificar quorum: el total de votos debe alcanzar el porcentaje mínimo del total de voting power
+        if (totalVotingPower > 0) {
+            uint256 quorumRequired = (totalVotingPower * quorumPercentage) / 100;
+            if (totalVotes < quorumRequired) {
+                p.status = ProposalStatus.REJECTED;
+                emit ProposalFinalized(proposalId, p.status);
+                revert QuorumNotReached();
+            }
+        }
+        
+        // Verificar threshold de aprobación: los votos a favor deben superar el porcentaje mínimo del total de votos
+        if (totalVotes > 0) {
+            uint256 approvalRequired = (totalVotes * approvalPercentage) / 100;
+            if (p.forVotes > approvalRequired) {
+                p.status = ProposalStatus.ACCEPTED;
+            } else {
+                p.status = ProposalStatus.REJECTED;
+            }
         } else {
             p.status = ProposalStatus.REJECTED;
         }

@@ -8,6 +8,10 @@ import "./GovernanceProposals.sol";
  * @dev DAO basica con staking de tokens ERC20, propuestas, votos
  *      y un tipo de propuesta especial para manejar el treasury (Conjunto C).
  *
+ * Incluye protección contra ataque del 51% mediante:
+ * - Quorum mínimo: porcentaje mínimo de participación requerido
+ * - Approval threshold: porcentaje mínimo de votos a favor sobre el total
+ *
  * La logica esta separada en varios contratos abstractos:
  * - GovernanceBase: estado, tipos, eventos, errores y modifiers
  * - GovernanceAdmin: parametros de la DAO, panico/tranquilidad y compra de tokens
@@ -23,7 +27,9 @@ contract GovernanceDAO is GovernanceProposals {
         uint256 _minStakeForProposing,
         uint256 _minStakeLockTime,
         uint256 _proposalDuration,
-        uint256 _tokensPerVotePower
+        uint256 _tokensPerVotePower,
+        uint256 _quorumPercentage,
+        uint256 _approvalPercentage
     )
         GovernanceBase(
             initialOwner,
@@ -33,7 +39,9 @@ contract GovernanceDAO is GovernanceProposals {
             _minStakeForProposing,
             _minStakeLockTime,
             _proposalDuration,
-            _tokensPerVotePower
+            _tokensPerVotePower,
+            _quorumPercentage,
+            _approvalPercentage
         )
     {}
 }

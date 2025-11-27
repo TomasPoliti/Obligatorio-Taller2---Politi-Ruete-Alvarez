@@ -27,6 +27,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -67,6 +70,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -106,6 +112,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -148,6 +157,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -185,6 +197,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -224,6 +239,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -261,6 +279,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -300,6 +321,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -314,8 +338,8 @@
       ]
     },
     "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceBase.sol": {
-      "lastModificationDate": 1764181370855,
-      "contentHash": "722e648a75cfdff3c6a7fec3ac553963",
+      "lastModificationDate": 1764264188939,
+      "contentHash": "fe956cb0ce33f554760023938467e7ed",
       "sourceName": "src/contracts/GovernanceBase.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -339,6 +363,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -354,8 +381,8 @@
       ]
     },
     "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceAdmin.sol": {
-      "lastModificationDate": 1764181370853,
-      "contentHash": "dae8d45079e2875aa618be63cf36e1b1",
+      "lastModificationDate": 1764264188885,
+      "contentHash": "69de3b526d28acfff01dc20e97d5f54f",
       "sourceName": "src/contracts/GovernanceAdmin.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -379,6 +406,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -393,8 +423,8 @@
       ]
     },
     "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceStaking.sol": {
-      "lastModificationDate": 1764181370857,
-      "contentHash": "6b2cf21ab439f1dee8e456e1d6dd75be",
+      "lastModificationDate": 1764264188948,
+      "contentHash": "fc6b0b19e1f237c814030421dc343ed0",
       "sourceName": "src/contracts/GovernanceStaking.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -418,6 +448,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -432,8 +465,8 @@
       ]
     },
     "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceProposals.sol": {
-      "lastModificationDate": 1764181370855,
-      "contentHash": "8ba7ba032843fb74ee3a7bcd67052862",
+      "lastModificationDate": 1764264188963,
+      "contentHash": "7c7de80aef33363f7eab1a413a802679",
       "sourceName": "src/contracts/GovernanceProposals.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -457,6 +490,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -471,8 +507,8 @@
       ]
     },
     "C:\\Users\\Aruet\\ObligatorioTaller2\\Obligatorio-Taller2---Politi-Ruete-Alvarez\\src\\contracts\\GovernanceDAO.sol": {
-      "lastModificationDate": 1764181370855,
-      "contentHash": "091d16bacc58fb1be267095544472ba8",
+      "lastModificationDate": 1764264188956,
+      "contentHash": "bfd09cc5815873cb4cc6cdfee4cd0d8c",
       "sourceName": "src/contracts/GovernanceDAO.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -496,6 +532,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },

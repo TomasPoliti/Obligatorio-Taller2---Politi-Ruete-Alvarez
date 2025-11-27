@@ -35,6 +35,10 @@ abstract contract GovernanceAdmin is GovernanceBase {
             _tokensPerVotePower
         );
     }
+    
+    function setQuorum(uint256 _quorumPercentage, uint256 _approvalPercentage) external onlyOwner {
+        _updateQuorum(_quorumPercentage, _approvalPercentage);
+    }
 
     // ---- Panico / tranquilidad ----
 

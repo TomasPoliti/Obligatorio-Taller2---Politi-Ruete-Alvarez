@@ -15,8 +15,13 @@ abstract contract GovernanceStaking is GovernanceAdmin {
         }
 
         StakeInfo storage info = votingStake[msg.sender];
+        uint256 oldPower = info.amount / tokensPerVotePower;
+        
         info.amount += amount;
         info.since = block.timestamp;
+        
+        uint256 newPower = info.amount / tokensPerVotePower;
+        totalVotingPower = totalVotingPower - oldPower + newPower;
 
         bool ok = token.transferFrom(msg.sender, address(this), amount);
         require(ok, "Token transfer failed");
@@ -33,7 +38,12 @@ abstract contract GovernanceStaking is GovernanceAdmin {
             revert LockTimeNotReached();
         }
 
+        uint256 oldPower = info.amount / tokensPerVotePower;
         info.amount -= amount;
+        uint256 newPower = info.amount / tokensPerVotePower;
+        
+        totalVotingPower = totalVotingPower - oldPower + newPower;
+        
         bool ok = token.transfer(msg.sender, amount);
         require(ok, "Token transfer failed");
 

@@ -17,6 +17,8 @@ describe("GovernanceDAO", function () {
   const MIN_STAKE_LOCK_TIME = 86400;
   const PROPOSAL_DURATION = 604800;
   const TOKENS_PER_VOTE_POWER = ethers.parseEther("10");
+  const QUORUM_PERCENTAGE = 30;
+  const APPROVAL_PERCENTAGE = 60;
 
   beforeEach(async function () {
     [owner, panicWallet, user1, user2, user3] = await ethers.getSigners();
@@ -24,7 +26,7 @@ describe("GovernanceDAO", function () {
     daoToken = await DaoToken.deploy("DAO Token", "DAO", owner.address);
     await daoToken.waitForDeployment();
     const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-    governanceDAO = await GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER);
+    governanceDAO = await GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE);
     await governanceDAO.waitForDeployment();
     await daoToken.transferOwnership(await governanceDAO.getAddress());
     await governanceDAO.mintDaoTokens(await governanceDAO.getAddress(), ethers.parseEther("1000000"));
@@ -41,32 +43,52 @@ describe("GovernanceDAO", function () {
 
     it("Should revert with zero token address", async function () {
       const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-      await expect(GovernanceDAO.deploy(owner.address, ethers.ZeroAddress, TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+      await expect(GovernanceDAO.deploy(owner.address, ethers.ZeroAddress, TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
 
     it("Should revert with zero token price", async function () {
       const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), 0, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), 0, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
 
     it("Should revert with zero min stake voting", async function () {
       const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, 0, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, 0, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
 
     it("Should revert with zero min stake proposing", async function () {
       const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, 0, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, 0, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
 
     it("Should revert with zero proposal duration", async function () {
       const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, 0, TOKENS_PER_VOTE_POWER)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, 0, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
 
     it("Should revert with zero tokens per vote", async function () {
       const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, 0)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, 0, QUORUM_PERCENTAGE, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert with zero quorum percentage", async function () {
+      const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, 0, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert with quorum percentage over 100", async function () {
+      const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, 101, APPROVAL_PERCENTAGE)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert with zero approval percentage", async function () {
+      const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, 0)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert with approval percentage over 100", async function () {
+      const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
+      await expect(GovernanceDAO.deploy(owner.address, await daoToken.getAddress(), TOKEN_PRICE_WEI, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER, QUORUM_PERCENTAGE, 101)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
   });
 
@@ -95,6 +117,34 @@ describe("GovernanceDAO", function () {
 
     it("Should revert zero price", async function () {
       await expect(governanceDAO.setParameters(0, MIN_STAKE_FOR_VOTING, MIN_STAKE_FOR_PROPOSING, MIN_STAKE_LOCK_TIME, PROPOSAL_DURATION, TOKENS_PER_VOTE_POWER)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+  });
+  
+  describe("Admin - setQuorum", function () {
+    it("Should allow owner to update quorum", async function () {
+      await expect(governanceDAO.setQuorum(40, 70)).to.emit(governanceDAO, "QuorumUpdated").withArgs(40, 70);
+      expect(await governanceDAO.quorumPercentage()).to.equal(40);
+      expect(await governanceDAO.approvalPercentage()).to.equal(70);
+    });
+    
+    it("Should revert non-owner", async function () {
+      await expect(governanceDAO.connect(user1).setQuorum(40, 70)).to.be.revertedWithCustomError(governanceDAO, "OwnableUnauthorizedAccount");
+    });
+    
+    it("Should revert zero quorum", async function () {
+      await expect(governanceDAO.setQuorum(0, 70)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert quorum over 100", async function () {
+      await expect(governanceDAO.setQuorum(101, 70)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert zero approval", async function () {
+      await expect(governanceDAO.setQuorum(40, 0)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
+    });
+    
+    it("Should revert approval over 100", async function () {
+      await expect(governanceDAO.setQuorum(40, 101)).to.be.revertedWithCustomError(governanceDAO, "InvalidParameter");
     });
   });
 
@@ -382,9 +432,118 @@ describe("GovernanceDAO", function () {
     });
 
     it("Should revert already finalized", async function () {
+      await governanceDAO.connect(user2).vote(0, true);
       await time.increase(PROPOSAL_DURATION + 1);
       await governanceDAO.finalizeProposal(0);
       await expect(governanceDAO.finalizeProposal(0)).to.be.revertedWithCustomError(governanceDAO, "VotingNotAllowed");
+    });
+  });
+  
+  describe("Anti-51% Attack (Quorum and Approval)", function () {
+    beforeEach(async function () {
+      const amount = ethers.parseEther("10000");
+      await governanceDAO.mintDaoTokens(user1.address, amount);
+      await governanceDAO.mintDaoTokens(user2.address, amount);
+      await governanceDAO.mintDaoTokens(user3.address, amount);
+      await daoToken.connect(user1).approve(await governanceDAO.getAddress(), amount);
+      await daoToken.connect(user2).approve(await governanceDAO.getAddress(), amount);
+      await daoToken.connect(user3).approve(await governanceDAO.getAddress(), amount);
+      await governanceDAO.connect(user1).stakeForProposing(MIN_STAKE_FOR_PROPOSING);
+    });
+    
+    it("Should reject when quorum not reached", async function () {
+      // Stake for voting - user2 has 100 power, user3 has 500 power = 600 total
+      await governanceDAO.connect(user2).stakeForVoting(ethers.parseEther("1000"));
+      await governanceDAO.connect(user3).stakeForVoting(ethers.parseEther("5000"));
+      
+      // Total voting power = 600
+      // Quorum needed = 30% of 600 = 180
+      // user2 votes with 100 power (less than 180)
+      await governanceDAO.connect(user1).createProposal("Test", "Test");
+      await governanceDAO.connect(user2).vote(0, true);
+      
+      await time.increase(PROPOSAL_DURATION + 1);
+      await expect(governanceDAO.finalizeProposal(0)).to.be.revertedWithCustomError(governanceDAO, "QuorumNotReached");
+    });
+    
+    it("Should accept when quorum reached and approval threshold met", async function () {
+      // user2 and user3 stake
+      await governanceDAO.connect(user2).stakeForVoting(ethers.parseEther("2000"));
+      await governanceDAO.connect(user3).stakeForVoting(ethers.parseEther("1000"));
+      
+      // Total voting power = 300
+      // Quorum needed = 30% of 300 = 90
+      // Both vote for = 300 votes (100% participation, > 30% quorum)
+      // Approval: 300 for, 0 against = 100% approval (> 60% required)
+      await governanceDAO.connect(user1).createProposal("Test", "Test");
+      await governanceDAO.connect(user2).vote(0, true);
+      await governanceDAO.connect(user3).vote(0, true);
+      
+      await time.increase(PROPOSAL_DURATION + 1);
+      await governanceDAO.finalizeProposal(0);
+      
+      const p = await governanceDAO.getProposal(0);
+      expect(p.status).to.equal(1); // ACCEPTED
+    });
+    
+    it("Should reject when approval threshold not met", async function () {
+      // user2 and user3 stake
+      await governanceDAO.connect(user2).stakeForVoting(ethers.parseEther("1000"));
+      await governanceDAO.connect(user3).stakeForVoting(ethers.parseEther("1000"));
+      
+      // Total voting power = 200
+      // Both vote but split: 100 for, 100 against = 50% approval (< 60% required)
+      await governanceDAO.connect(user1).createProposal("Test", "Test");
+      await governanceDAO.connect(user2).vote(0, true);
+      await governanceDAO.connect(user3).vote(0, false);
+      
+      await time.increase(PROPOSAL_DURATION + 1);
+      await governanceDAO.finalizeProposal(0);
+      
+      const p = await governanceDAO.getProposal(0);
+      expect(p.status).to.equal(2); // REJECTED
+    });
+    
+    it("Should prevent 51% attack scenario", async function () {
+      // Simular ataque del 51%: un usuario tiene 51% del total de voting power
+      const attacker = user2;
+      const defender = user3;
+      
+      // Attacker stakes 510 tokens (51 voting power)
+      // Defender stakes 490 tokens (49 voting power)
+      // Total = 100 voting power
+      await governanceDAO.connect(attacker).stakeForVoting(ethers.parseEther("510"));
+      await governanceDAO.connect(defender).stakeForVoting(ethers.parseEther("490"));
+      
+      await governanceDAO.connect(user1).createProposal("Malicious", "Attack");
+      
+      // Attacker votes with 51 power
+      await governanceDAO.connect(attacker).vote(0, true);
+      
+      await time.increase(PROPOSAL_DURATION + 1);
+      
+      // Con 30% quorum: necesita 30 votes, tiene 51 (OK)
+      // Con 60% approval: necesita 60% de los votos que participaron
+      // Si solo attacker vota: 51 for, 0 against = 100% approval (ACCEPTED)
+      // Pero si defender también vota: 51 for, 49 against = 51% approval (< 60% REJECTED)
+      
+      // Sin defensa, el ataque pasa por quorum pero necesita 60% approval
+      // Como es el único votante, tiene 100% approval
+      await governanceDAO.finalizeProposal(0);
+      let p = await governanceDAO.getProposal(0);
+      expect(p.status).to.equal(1); // ACCEPTED (solo votó el attacker)
+      
+      // Ahora probemos con defensa
+      await governanceDAO.connect(user1).createProposal("Malicious2", "Attack2");
+      await governanceDAO.connect(attacker).vote(1, true);
+      await governanceDAO.connect(defender).vote(1, false);
+      
+      await time.increase(PROPOSAL_DURATION + 1);
+      await governanceDAO.finalizeProposal(1);
+      
+      p = await governanceDAO.getProposal(1);
+      // 51 for / 100 total = 51% approval (< 60% required)
+      expect(p.status).to.equal(2); // REJECTED - Attack prevented!
     });
   });
 

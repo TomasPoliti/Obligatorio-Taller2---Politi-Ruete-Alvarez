@@ -54,8 +54,15 @@ abstract contract GovernanceBase is Ownable {
     uint256 public minStakeLockTime; // en segundos
     uint256 public proposalDuration; // en segundos
     uint256 public tokensPerVotePower; // cuantos tokens equivalen a 1 unidad de poder de voto
+    
+    // Protección contra ataque del 51%
+    uint256 public quorumPercentage; // Porcentaje mínimo de participación (en base 100)
+    uint256 public approvalPercentage; // Porcentaje mínimo de aprobación (en base 100)
 
     uint256 public nextProposalId;
+    
+    // Total de poder de voto stakeado (para calcular quorum)
+    uint256 public totalVotingPower;
 
     mapping(uint256 proposalId => Proposal) public proposals;
     mapping(uint256 proposalId => mapping(address voter => bool)) public hasVoted;
@@ -75,6 +82,8 @@ abstract contract GovernanceBase is Ownable {
         uint256 proposalDuration,
         uint256 tokensPerVotePower
     );
+    
+    event QuorumUpdated(uint256 quorumPercentage, uint256 approvalPercentage);
 
     event StakedForVoting(address indexed user, uint256 amount);
     event UnstakedFromVoting(address indexed user, uint256 amount);
@@ -107,6 +116,8 @@ abstract contract GovernanceBase is Ownable {
     error LockTimeNotReached();
     error InvalidTreasuryProposal();
     error ProposalNotExecutable();
+    error QuorumNotReached();
+    error ApprovalThresholdNotReached();
 
     modifier daoOperational() {
         if (paused) {
@@ -133,7 +144,9 @@ abstract contract GovernanceBase is Ownable {
         uint256 _minStakeForProposing,
         uint256 _minStakeLockTime,
         uint256 _proposalDuration,
-        uint256 _tokensPerVotePower
+        uint256 _tokensPerVotePower,
+        uint256 _quorumPercentage,
+        uint256 _approvalPercentage
     ) Ownable(initialOwner) {
         if (tokenAddress == address(0)) {
             revert InvalidParameter();
@@ -152,6 +165,8 @@ abstract contract GovernanceBase is Ownable {
             _proposalDuration,
             _tokensPerVotePower
         );
+        
+        _updateQuorum(_quorumPercentage, _approvalPercentage);
     }
 
     function _updateParameters(
@@ -187,6 +202,20 @@ abstract contract GovernanceBase is Ownable {
             _proposalDuration,
             _tokensPerVotePower
         );
+    }
+    
+    function _updateQuorum(uint256 _quorumPercentage, uint256 _approvalPercentage) internal {
+        if (_quorumPercentage == 0 || _quorumPercentage > 100) {
+            revert InvalidParameter();
+        }
+        if (_approvalPercentage == 0 || _approvalPercentage > 100) {
+            revert InvalidParameter();
+        }
+        
+        quorumPercentage = _quorumPercentage;
+        approvalPercentage = _approvalPercentage;
+        
+        emit QuorumUpdated(_quorumPercentage, _approvalPercentage);
     }
 }
 

@@ -29,6 +29,10 @@ async function main() {
   const minStakeLockTime = 60 * 60 * 24 * 7; // 7 days in seconds
   const proposalDuration = 60 * 60 * 24 * 7; // 7 days in seconds
   const tokensPerVotePower = hre.ethers.parseEther("1"); // 1 token = 1 vote power
+  
+  // Anti-51% attack parameters
+  const quorumPercentage = 30; // Minimum 30% of total voting power must participate
+  const approvalPercentage = 60; // Minimum 60% of votes must be in favor
 
   const governanceDAO = await GovernanceDAO.deploy(
     deployer.address, // Initial owner (should be multisig in production)
@@ -38,7 +42,9 @@ async function main() {
     minStakeForProposing,
     minStakeLockTime,
     proposalDuration,
-    tokensPerVotePower
+    tokensPerVotePower,
+    quorumPercentage,
+    approvalPercentage
   );
   await governanceDAO.waitForDeployment();
   const daoAddress = await governanceDAO.getAddress();
